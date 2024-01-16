@@ -1023,3 +1023,51 @@ fn drain_keep_rest() {
 
     assert_eq!(a, SmallVec::<[i32; 3]>::from_slice(&[1i32, 3, 5, 6, 7, 8]));
 }
+
+#[cfg(feature = "get-size")]
+#[test]
+fn test_get_size() {
+    use get_size::GetSize;
+
+    assert_eq!(SmallVec::<[i32; 1]>::get_stack_size(), 24);
+    assert_eq!(SmallVec::<[i32; 2]>::get_stack_size(), 24);
+    assert_eq!(SmallVec::<[i32; 10]>::get_stack_size(), 56);
+
+    let mut a: SmallVec<[i32; 2]> = smallvec![];
+    assert_eq!(SmallVec::<[i32; 2]>::get_stack_size(), 24);
+    assert!(!a.spilled());
+    assert_eq!(a.len(), 0);
+    assert_eq!(a.get_size(), 24);
+    assert_eq!(a.get_heap_size(), 0);
+
+    a.push(0);
+    assert_eq!(a.len(), 1);
+    assert!(!a.spilled());
+    assert_eq!(a.get_size(), 24);
+    assert_eq!(a.get_heap_size(), 0);
+
+    a.push(1);
+    assert_eq!(a.len(), 2);
+    assert!(!a.spilled());
+    assert_eq!(a.get_size(), 24);
+    assert_eq!(a.get_heap_size(), 0);
+
+    a.push(2);
+    assert_eq!(a.len(), 3);
+    assert!(a.spilled());
+    assert_eq!(a.get_size(), 40);
+    assert_eq!(a.get_heap_size(), 16);
+
+    a.push(3);
+    assert_eq!(a.len(), 4);
+    assert!(a.spilled());
+    assert_eq!(a.get_size(), 40);
+    assert_eq!(a.get_heap_size(), 16);
+
+    a.push(4);
+    assert_eq!(a.len(), 5);
+    assert!(a.spilled());
+    assert_eq!(a.get_size(), 56);
+    assert_eq!(a.get_heap_size(), 32);
+
+}
